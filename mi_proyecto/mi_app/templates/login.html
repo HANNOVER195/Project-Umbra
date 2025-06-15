@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login con Firebase</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "",
+      authDomain: "umbra-bd86a.firebaseapp.com",
+      projectId: "umbra-bd86a",
+      storageBucket: "",
+      messagingSenderId: "138368628590",
+      appId: "",
+      measurementId: ""
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.loginUsuario = async function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const token = await userCredential.user.getIdToken();
+
+        const res = await fetch("http://127.0.0.1:8000/verificar-token/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ idToken: token }),
+        });
+
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          alert(`Login exitoso: UID ${data.uid}`);
+        } else {
+          alert(`Error en login: ${data.message}`);
+        }
+
+      } catch (error) {
+        alert("Error al iniciar sesión: " + error.message);
+      }
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    };
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+    <h2 class="text-2xl font-bold mb-6 text-center">Iniciar sesión</h2>
+    <input id="email" type="email" placeholder="Correo electrónico" class="w-full px-4 py-2 mb-4 border rounded" />
+    <input id="password" type="password" placeholder="Contraseña" class="w-full px-4 py-2 mb-4 border rounded" />
+    <button onclick="loginUsuario()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Ingresar</button>
+  </div>
+</body>
+</html>
